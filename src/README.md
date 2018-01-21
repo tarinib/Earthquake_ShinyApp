@@ -1,1 +1,0 @@
-# Earthquake_ShinyApp

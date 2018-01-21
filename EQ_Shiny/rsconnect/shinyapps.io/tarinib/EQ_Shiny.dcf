@@ -1,0 +1,12 @@
+name: EQ_Shiny
+title: EQ_Shiny
+username:
+account: tarinib
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 258854
+bundleId: 1185737
+url: https://tarinib.shinyapps.io/EQ_Shiny/
+when: 1516557500.58694
+asMultiple: FALSE
+asStatic: FALSE
