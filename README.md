@@ -6,7 +6,7 @@ Created by: TARINI BHATNAGAR
 
 Date: January 21, 2018
 
-#####Link to Shiny App:
+##### Link to Shiny App:
 
 [https://tarinib.shinyapps.io/EQ_Shiny/](https://tarinib.shinyapps.io/EQ_Shiny/)
 
