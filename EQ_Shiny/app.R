@@ -15,10 +15,9 @@ library(mapdata)
 library(shinythemes)
 library(stringr)
 library(readr)
-library(gganimate)
-devtools::install_github("dgrtwo/gganimate")
 library(leaflet)
 library(scales)
+library(DT)
 
 
 options(shiny.sanitize.errors = FALSE)
@@ -32,6 +31,7 @@ dat <- read_csv("database.csv")
 #Selecting specific columns
 
 eq_data <- dat %>% 
+  filter(Type=="Earthquake") %>% 
   select("Date", "Time", "Latitude", "Longitude", "Type", "Depth", "Magnitude", "Magnitude Type", "ID", "Status")
 
 #Replacing spaces in column names with _
@@ -58,74 +58,80 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
    titlePanel("Significant Earthquakes 1965-2016"),
    
    # Sidebar with a slider input 
-   sidebarLayout(
-      sidebarPanel(
-        h4("Interactive options"),
-        h6("(To be used with animated and static map)"),
-        br(),
-        sliderInput("yearInput", "Year Range", 
-                    min = 1965, max = 2016,
-                    value = c(1966, 2005), sep = "",step=1),
-        sliderInput("magInput", "Magnitude", 
-                    min = 5.5, max = 9.1,
-                    value = c(6.6, 9.1), sep = "",step=0.1),
-        checkboxGroupInput("magtypeInput", "Magnitude Type",
-                           choices=c("MS","ML","MB","MW","MD"),
-                           selected=c("MS","ML","MB","MW","MD")),
-        h6("(MS: Surface Wave, ML: Local (Richter), MB: Body Wave, MW: Moment , MD: Duration)"),
-        br(),
-        sliderInput("depthInput", "Depth Range (km)", 
-                    min = 0, max = 700,
-                    value = c(110, 680), sep = "",step=5),
-        radioButtons("colorbyInput", "Color By",
-                     choices=c("Depth","Magnitude"),
-                     selected="Magnitude"),
-        checkboxGroupInput("typeInput", "Type of event",
-                           choices=c("Earthquake","Nuclear Explosion"),
-                           selected="Earthquake")
-      ),
+   
       
-      # Main Panel
-      mainPanel(
-        tabsetPanel(type="tab",
-                    tabPanel("Data Explorer", 
+   # Main Panel
+   #conditionalPanel(#condition = tab name',
+     #sudebar
+
+   tabsetPanel(type="tab",
+               tabPanel("Data Explorer", 
+                        br(),
+                        br(),
+                        h6("Here, you can explore the entire dataset. Zoom in/out and click on specific pins to get to know the earthquakes personally!"),
+                        br(),
+                        br(),
+                        leafletOutput("leaflet")
+                ),
+                tabPanel("Interactive Map", fluid=TRUE,
+                         sidebarLayout(
+                           sidebarPanel(
+                             h4("Interactive options"),
                              br(),
+                             sliderInput("yearInput", "Year Range", 
+                                         min = 1965, max = 2016,
+                                         value = c(1966, 2005), sep = "",step=1),
+                             sliderInput("magInput", "Magnitude", 
+                                         min = 5.5, max = 9.1,
+                                         value = c(6.6, 9.1), sep = "",step=0.1),
+                             sliderInput("depthInput", "Depth Range (km)", 
+                                         min = 0, max = 700,
+                                         value = c(110, 680), sep = "",step=5),
+                             radioButtons("colorbyInput", "Color By",
+                                          choices=c("Magnitude of earthquake"="Magnitude","Depth of epicenter"="Depth"),
+                                          selected="Magnitude"),
+
                              br(),
-                             h6("Here, you can explore the entire dataset. Zoom in/out and click on specific pins to get to know the earthquakes personally!"),
-                             br(),
-                             br(),
-                             leafletOutput("leaflet")),
-                    tabPanel("Animated Map",
-                             br(),
-                             br(),
-                             h6("Here, you can see the animation for your selected parameters changing over time(years)"),
-                             imageOutput("anim_map")),
-                    tabPanel("Static Map", 
+                             checkboxGroupInput("magtypeInput", "Magnitude Type",
+                                                choices=c('MS: Surface Wave' = 'MS',
+                                                          'ML: Local (Richter)' = 'ML',
+                                                          'MB: Body Wave' = 'MB',
+                                                          'MW: Moment' = 'MW',
+                                                          'MD: Duration' = 'MD'),
+                                                selected=c("MS","ML","MB","MW","MD")),
+                             a(href="https://www.usgs.gov/faqs/moment-magnitude-richter-scale-what-are-different-magnitude-scales-and-why-are-there-so-many", "What do these magnitude types mean?")
+                             ),
+                           mainPanel(
                              br(),
                              br(),
                              h6(" Here, you can play with the interactive options on the menu bar on the left to personalize the dataset. If events do not show up, that means you need to select the correct scale(magnitude type). For example, for depth ~500-700, you need to select MB magnitude."),
                              br(),
                              br(),
-                             plotOutput("stat_map"), 
-                             h6("Try plotting a larger range of years and magnitude. Do you notice any patterns? For more information, check out the informations tab!")),
-                    tabPanel("Distribution",
-                             br(),
-                             br(),
-                             h6("Play with the magntiude range slider"),
-                             br(),
-                             h6("Earthquakes are always occurring somewhere in the world. Smaller magntiude earthquakes happen every year, while major earthquakes happen, on average, about once a year. As the magntiude increases, frequency of those events decreases."),
-                             br(),
-                             br(),
-                             br(),
-                             plotOutput("hist")),
-                    tabPanel("Information",
-                             tags$iframe(style="height:400px; width:100%; scrolling=yes", src="PlateTectonics.pdf")),
-                    tabPanel("Data",
-                             tableOutput("table"))
-                    )
-      )
-   )
+                             plotOutput("int_map"), 
+                             h6("Try plotting a larger range of years and magnitude. Do you notice any patterns? For more information, check out the informations tab!")
+                             )
+                           )
+                         ),
+               tabPanel("Distribution",
+                        br(),
+                        br(),
+                        h6("Play with the magntiude range slider"),
+                        br(),
+                        h6("Earthquakes are always occurring somewhere in the world. Smaller magntiude earthquakes happen every year, while major earthquakes happen, on average, about once a year. As the magntiude increases, frequency of those events decreases."),
+                        br(),
+                        br(),
+                        br(),
+                        plotOutput("hist")
+                        ),
+               tabPanel("Data",
+                        dataTableOutput("table")
+               ),
+               tabPanel("Information",
+                        tags$iframe(style="height:400px; width:100%; scrolling=yes", src="PlateTectonics.pdf")
+                        )
+               )
 )
+
 
 # Define server logic
 server <- function(input, output) {
@@ -135,8 +141,8 @@ server <- function(input, output) {
     
     eq_data %>%
       leaflet() %>%
+      setView(0, 0, zoom = 2) %>% 
       addTiles() %>%
-      addProviderTiles("Esri.WorldImagery") %>% 
       addMarkers(lat=eq_data$Latitude, lng=eq_data$Longitude, clusterOptions = markerClusterOptions(),
                  popup= paste(eq_data$Type,
                               "<br><strong>Date: </strong>", eq_data$Date,
@@ -148,49 +154,8 @@ server <- function(input, output) {
                  ))
   })
   
-  #Second tab(Animated Map)
-  output$anim_map <- renderImage({
-
-    filter_year <-eq_data %>%
-      filter(Year >= input$yearInput[1],
-             Year <= input$yearInput[2],
-             Magnitude >= input$magInput[1],
-             Magnitude <= input$magInput[2],
-             Magnitude_Type %in% input$magtypeInput,
-             Depth >= input$depthInput[1],
-             Depth <= input$depthInput[2],
-             Type %in% input$typeInput)
-
-    outfile <- tempfile(fileext='.gif')
-
-    if (input$colorbyInput=="Depth"){
-      p <- ggplot()+
-        geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="black", fill="gray50",alpha=0.5)+
-        geom_point(data=filter_year,aes(x = Longitude, y = Latitude, frame=Year, color=Depth, size=Depth, alpha=0.1))+
-        scale_colour_gradient2(midpoint=mean(filter_year$Depth), low="black", mid="blue",high="red")+
-        labs(title="Earthquakes by Depth (km)",x="Latitude (degrees)", y="Longitude (degrees)")+
-        theme_classic()
-      gganimate(p,interval = 0.3,ani.width=900,ani.res = 1500,"outfile.gif")
-    }
-    else
-      p <- ggplot()+
-        geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="black", fill="gray50",alpha=0.5)+
-        geom_point(data=filter_year,aes(x = Longitude, y = Latitude, frame=Year, color=Magnitude, size=Magnitude, alpha=0.1))+
-        scale_colour_gradient2(midpoint=mean(filter_year$Magnitude), low="black", mid="purple",high="gold")+
-        labs(title="Earthquakes by Magnitude",x="Latitude (degrees)", y="Longitude (degrees)")+
-        theme_classic()
-      gganimate(p,interval = 0.1,ani.width=750,ani.res = 1500,"outfile.gif")
-
-      # Return a list containing the filename
-      list(src = "outfile.gif",
-           contentType = 'image/gif'
-           #width = 750,
-           #height = 450,
-           #alt = "This is alternate text"
-      )}, deleteFile = TRUE)
-
-  #Third tab(Static Map)
-  output$stat_map <- renderPlot({
+  #Second tab(Interactive Map)
+  output$int_map <- renderPlot({
     
     filter_year <-eq_data %>%
       filter(Year >= input$yearInput[1],
@@ -199,29 +164,28 @@ server <- function(input, output) {
              Magnitude <= input$magInput[2],
              Magnitude_Type %in% input$magtypeInput,
              Depth >= input$depthInput[1],
-             Depth <= input$depthInput[2],
-             Type %in% input$typeInput)
+             Depth <= input$depthInput[2])
     
     if (input$colorbyInput=="Depth"){
       ggplot()+
-        geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="black", fill="gray50", alpha=0.5)+
-        geom_point(data=filter_year,aes(x = Longitude, y = Latitude, color=Depth, size=Depth))+
-        scale_colour_gradient2(midpoint=mean(filter_year$Depth), low="black", mid="blue",high="red")+
+        geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="white", fill="gray50", alpha=0.5)+
+        geom_point(data=filter_year,aes(x = Longitude, y = Latitude, color=Depth),alpha=0.8)+
         labs(title="Earthquakes by Depth (km)",x="Latitude (degrees)", y="Longitude (degrees)")+
+        scale_colour_gradient(low = "orange1", high = "green4",guide = guide_colorbar(reverse=TRUE))+
         theme_classic()
       
     }
     else
       ggplot()+
-        geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="black", fill="gray50", alpha=0.5)+
-        geom_point(data=filter_year,aes(x = Longitude, y = Latitude,color=Magnitude, size=Magnitude))+
-        scale_colour_gradient2(midpoint=mean(filter_year$Magnitude), low="black", mid="purple",high="gold")+
+        geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="white", fill="gray50", alpha=0.5)+
+        geom_point(data=filter_year,aes(x = Longitude, y = Latitude,color=Magnitude),alpha=0.8)+
         labs(title="Earthquakes by Magnitude",x="Latitude (degrees)", y="Longitude (degrees)")+
+        scale_colour_gradient(low = "red", high = "blue", guide = guide_colorbar(reverse=TRUE))+
         theme_classic()
     
   })
   
-  #Fourth tab(Distribution)
+  #Third tab(Distribution)
   output$hist <- renderPlot({
     
     filter_year <-eq_data %>%
@@ -231,8 +195,7 @@ server <- function(input, output) {
              Magnitude <= input$magInput[2],
              Magnitude_Type %in% input$magtypeInput,
              Depth >= input$depthInput[1],
-             Depth <= input$depthInput[2],
-             Type %in% input$typeInput)
+             Depth <= input$depthInput[2])
     
       ggplot(filter_year, aes(Magnitude))+
         geom_histogram(bins=50, binwidth=0.1,fill="grey50", color="purple", alpha=0.5)+
@@ -240,12 +203,9 @@ server <- function(input, output) {
         theme_classic()
       
   })
-    
- #Fifth tab(Information)
- #This has already been included in the UI.
   
- #Sixth tab(Rendered Data)
- output$table <- renderTable({
+ #Fourth tab(Rendered Data)
+ output$table <- renderDataTable({
   filter_year <-eq_data %>%
     filter(Year >= input$yearInput[1],
            Year <= input$yearInput[2],
@@ -253,11 +213,13 @@ server <- function(input, output) {
            Magnitude <= input$magInput[2],
            Magnitude_Type %in% input$magtypeInput,
            Depth >= input$depthInput[1],
-           Depth <= input$depthInput[2],
-           Type %in% input$typeInput)
-    
-  print(filter_year)    
+           Depth <= input$depthInput[2]) %>% 
+    select("Date","Time", "Latitude", "Longitude", "Depth", "Magnitude", "Magnitude_Type", "ID")
+  datatable(filter_year, option = list(scrollX = TRUE, pageLength = 10))  
  })
+ 
+ #Fifth tab(Information)
+ #This has already been included in the UI.
 }
 
 # Run the application 
