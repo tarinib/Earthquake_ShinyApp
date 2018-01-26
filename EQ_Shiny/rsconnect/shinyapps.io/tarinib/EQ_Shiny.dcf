@@ -5,8 +5,8 @@ account: tarinib
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 258854
-bundleId: 1193939
+bundleId: 1193961
 url: https://tarinib.shinyapps.io/EQ_Shiny/
-when: 1516948583.78693
+when: 1516950573.7311
 asMultiple: FALSE
 asStatic: FALSE

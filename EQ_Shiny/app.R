@@ -1,7 +1,7 @@
 
 ## SHINY APP
 ## Author: Tarini Bhatnagar
-## date: "01/21/2018"
+## date: "01/25/2018"
 
 #----------------------------------------------------------------------------------------------------------------
 ####LOADING REQUIRED PACKAGES
@@ -56,14 +56,19 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
    
    # Application title
    titlePanel("Significant Earthquakes 1965-2016"),
+   
+   # Adding data source
    h6("Data: "),
    a(href="https://earthquake.usgs.gov/", "USGS (United States Geological Survey)"),
    h6("Data provided by: "),
    a(href="https://www.kaggle.com/usgs/earthquake-database", "Kaggle"),
    br(),
 
-   # Main Panel
+   # Defining various tabs
    tabsetPanel(type="tab",
+               
+               # Tab1: Data Explorer with leaflet worldmap
+               
                tabPanel("Data Explorer", 
                         br(),
                         br(),
@@ -72,7 +77,13 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                         br(),
                         leafletOutput("leaflet")
                 ),
+               
+               # Tab2: Interactive map with sidebar options
+               
                 tabPanel("Interactive Map", fluid=TRUE,
+                         
+                         #Defining sidebar input parameters
+                         
                          sidebarLayout(
                            sidebarPanel(
                              h4("Interactive options"),
@@ -103,6 +114,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                                                 selected=c("MS","ML","MB","MW","MD")),
                              a(href="https://www.usgs.gov/faqs/moment-magnitude-richter-scale-what-are-different-magnitude-scales-and-why-are-there-so-many", "What do these magnitude types mean?")
                              ),
+                           
+                           #Defining main page plot
+                           
                            mainPanel(
                              br(),
                              br(),
@@ -116,7 +130,13 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                              )
                            )
                          ),
+               
+               # Tab3: Frequency plot with sidebar options
+               
                tabPanel("Frequency Plot", fluid=TRUE,
+                        
+                        #Defining sidebar input parameters
+                        
                         sidebarLayout(
                           sidebarPanel(
                             h4("Interactive options"),
@@ -144,6 +164,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                                                selected=c("MS","ML","MB","MW","MD")),
                             a(href="https://www.usgs.gov/faqs/moment-magnitude-richter-scale-what-are-different-magnitude-scales-and-why-are-there-so-many", "What do these magnitude types mean?")
                           ),
+                          
+                          #Defining main page plot
+                          
                         mainPanel(
                           br(),
                           br(),
@@ -157,7 +180,13 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                           )
                         )
                ),
+               
+               # Tab4: Render Data with sidebar options
+               
                tabPanel("Data", fluid=TRUE,
+                        
+                        #Defining sidebar input parameters
+                        
                         sidebarLayout(
                           sidebarPanel(
                             h4("Interactive options"),
@@ -185,6 +214,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                                                selected=c("MS","ML","MB","MW","MD")),
                             a(href="https://www.usgs.gov/faqs/moment-magnitude-richter-scale-what-are-different-magnitude-scales-and-why-are-there-so-many", "What do these magnitude types mean?")
                           ),
+                          
+                          #Defining main page plot
+                          
                           mainPanel(
                             br(),
                             br(),
@@ -194,6 +226,9 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                             )
                         )
                ),
+               
+               # Tab5: Information tab with an embedded pdf
+               
                tabPanel("Information",
                         tags$iframe(style="height:400px; width:100%; scrolling=yes", src="PlateTectonics.pdf")
                         )
@@ -207,6 +242,7 @@ server <- function(input, output) {
   #First tab(Data Explorer)
   output$leaflet <- renderLeaflet({
     
+    #Adding world map leaflet and even markers
     eq_data %>%
       leaflet() %>%
       setView(0, 0, zoom = 2) %>% 
@@ -225,6 +261,7 @@ server <- function(input, output) {
   #Second tab(Interactive Map)
   output$int_map <- renderPlot({
     
+    #Filtering data according to input parameters
     filter_year <-eq_data %>%
       filter(Year >= input$yearInput[1],
              Year <= input$yearInput[2],
@@ -234,6 +271,7 @@ server <- function(input, output) {
              Depth >= input$depthInput[1],
              Depth <= input$depthInput[2])
     
+    #Plot for events color coded by depth
     if (input$colorbyInput=="Depth"){
       ggplot()+
         geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="white", fill="gray50", alpha=0.5)+
@@ -244,6 +282,8 @@ server <- function(input, output) {
       
     }
     else
+      
+      #Plot for events color coded by magnitude
       ggplot()+
         geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="white", fill="gray50", alpha=0.5)+
         geom_point(data=filter_year,aes(x = Longitude, y = Latitude,color=Magnitude),alpha=0.7)+
@@ -256,6 +296,7 @@ server <- function(input, output) {
   #Third tab(Distribution)
   output$hist <- renderPlot({
     
+    #Filtering data according to input parameters
     filter_year <-eq_data %>%
       filter(Year >= input$yearInput_f[1],
              Year <= input$yearInput_f[2],
@@ -265,6 +306,7 @@ server <- function(input, output) {
              Depth >= input$depthInput_f[1],
              Depth <= input$depthInput_f[2])
     
+    #Plot for frequency ditribution of events
       ggplot(filter_year, aes(Magnitude))+
         geom_histogram(bins=50, binwidth=0.1,fill="navy", color="yellow3")+
         labs(title="Frequency of Earthquakes by Magnitude", y="Number of events")+
@@ -274,6 +316,8 @@ server <- function(input, output) {
   
  #Fourth tab(Rendered Data)
  output$table <- renderDataTable({
+   
+  #Filtering data according to input parameters
   filter_year <-eq_data %>%
     filter(Year >= input$yearInput_d[1],
            Year <= input$yearInput_d[2],
@@ -283,6 +327,8 @@ server <- function(input, output) {
            Depth >= input$depthInput_d[1],
            Depth <= input$depthInput_d[2]) %>% 
     select("Year", "Date","Time", "Latitude", "Longitude", "Magnitude", "Magnitude_Type", "Depth","ID")
+  
+  #Producing DT scrollable table filtered according to inputs above
   datatable(filter_year, option = list(scrollX = TRUE, pageLength =11))  
  })
  
