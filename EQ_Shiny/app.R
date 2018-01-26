@@ -65,7 +65,7 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                tabPanel("Data Explorer", 
                         br(),
                         br(),
-                        h6("Here, you can explore the entire dataset. Zoom in/out and click on specific pins to get to know the earthquakes personally!"),
+                        h5("Here, you can explore the entire dataset. Zoom in/out and click on specific pins to get to know the earthquakes personally!"),
                         br(),
                         br(),
                         leafletOutput("leaflet")
@@ -104,27 +104,93 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                            mainPanel(
                              br(),
                              br(),
-                             h6(" Here, you can play with the interactive options on the menu bar on the left to personalize the dataset. If events do not show up, that means you need to select the correct scale(magnitude type). For example, for depth ~500-700, you need to select MB magnitude."),
+                             h5(" Here, you can play with the interactive options on the menu bar on the left to personalize the dataset"),
+                             br(),
+                             h5("If events do not show up, that means you need to select the correct scale(magnitude type). For example, for depth ~500-700, you need to select MB magnitude."),
                              br(),
                              br(),
-                             plotOutput("int_map"), 
-                             h6("Try plotting a larger range of years and magnitude. Do you notice any patterns? For more information, check out the informations tab!")
+                             h5("Try plotting a larger range of years and magnitude. Do you notice any patterns? For more information, check out the informations tab!"),
+                             plotOutput("int_map")
                              )
                            )
                          ),
-               tabPanel("Distribution",
-                        br(),
-                        br(),
-                        h6("Play with the magntiude range slider"),
-                        br(),
-                        h6("Earthquakes are always occurring somewhere in the world. Smaller magntiude earthquakes happen every year, while major earthquakes happen, on average, about once a year. As the magntiude increases, frequency of those events decreases."),
-                        br(),
-                        br(),
-                        br(),
-                        plotOutput("hist")
-                        ),
-               tabPanel("Data",
-                        dataTableOutput("table")
+               tabPanel("Frequency Plot", fluid=TRUE,
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Interactive options"),
+                            br(),
+                            sliderInput("yearInput_f", "Year Range", 
+                                        min = 1965, max = 2016,
+                                        value = c(1966, 2005), sep = "",step=1),
+                            sliderInput("magInput_f", "Magnitude", 
+                                        min = 5.5, max = 9.1,
+                                        value = c(6.6, 9.1), sep = "",step=0.1),
+                            sliderInput("depthInput_f", "Depth Range (km)", 
+                                        min = 0, max = 700,
+                                        value = c(110, 680), sep = "",step=5),
+                            a(href="https://earthquake.usgs.gov/learn/glossary/?term=magnitude", "What is magnitude?"),
+                            br(),
+                            a(href="https://earthquake.usgs.gov/learn/topics/determining_depth.php", "How do we determine depth?"),
+                            br(),
+                            br(),
+                            checkboxGroupInput("magtypeInput_f", "Magnitude Type",
+                                               choices=c('MS: Surface Wave' = 'MS',
+                                                         'ML: Local (Richter)' = 'ML',
+                                                         'MB: Body Wave' = 'MB',
+                                                         'MW: Moment' = 'MW',
+                                                         'MD: Duration' = 'MD'),
+                                               selected=c("MS","ML","MB","MW","MD")),
+                            a(href="https://www.usgs.gov/faqs/moment-magnitude-richter-scale-what-are-different-magnitude-scales-and-why-are-there-so-many", "What do these magnitude types mean?")
+                          ),
+                        mainPanel(
+                          br(),
+                          br(),
+                          h5("Play with the magntiude range slider and other filters on the left and observe the frequency of different magnitude earthquakes."),
+                          br(),
+                          h5("Earthquakes are always occurring somewhere in the world. Smaller magntiude earthquakes happen every year, while major earthquakes happen, on average, about once a year. As the magntiude increases, frequency of those events decreases."),
+                          br(),
+                          br(),
+                          br(),
+                          plotOutput("hist")
+                          )
+                        )
+               ),
+               tabPanel("Data", fluid=TRUE,
+                        sidebarLayout(
+                          sidebarPanel(
+                            h4("Interactive options"),
+                            br(),
+                            sliderInput("yearInput_d", "Year Range", 
+                                        min = 1965, max = 2016,
+                                        value = c(1966, 2005), sep = "",step=1),
+                            sliderInput("magInput_d", "Magnitude", 
+                                        min = 5.5, max = 9.1,
+                                        value = c(6.6, 9.1), sep = "",step=0.1),
+                            sliderInput("depthInput_d", "Depth Range (km)", 
+                                        min = 0, max = 700,
+                                        value = c(110, 680), sep = "",step=5),
+                            a(href="https://earthquake.usgs.gov/learn/glossary/?term=magnitude", "What is magnitude?"),
+                            br(),
+                            a(href="https://earthquake.usgs.gov/learn/topics/determining_depth.php", "How do we determine depth?"),
+                            br(),
+                            br(),
+                            checkboxGroupInput("magtypeInput_d", "Magnitude Type",
+                                               choices=c('MS: Surface Wave' = 'MS',
+                                                         'ML: Local (Richter)' = 'ML',
+                                                         'MB: Body Wave' = 'MB',
+                                                         'MW: Moment' = 'MW',
+                                                         'MD: Duration' = 'MD'),
+                                               selected=c("MS","ML","MB","MW","MD")),
+                            a(href="https://www.usgs.gov/faqs/moment-magnitude-richter-scale-what-are-different-magnitude-scales-and-why-are-there-so-many", "What do these magnitude types mean?")
+                          ),
+                          mainPanel(
+                            br(),
+                            br(),
+                            h5(" Here, you can play with the interactive options on the menu bar on the left to filter the dataset and search for specific events."),
+                            br(),
+                            dataTableOutput("table")
+                            )
+                        )
                ),
                tabPanel("Information",
                         tags$iframe(style="height:400px; width:100%; scrolling=yes", src="PlateTectonics.pdf")
@@ -189,17 +255,17 @@ server <- function(input, output) {
   output$hist <- renderPlot({
     
     filter_year <-eq_data %>%
-      filter(Year >= input$yearInput[1],
-             Year <= input$yearInput[2],
-             Magnitude >= input$magInput[1],
-             Magnitude <= input$magInput[2],
-             Magnitude_Type %in% input$magtypeInput,
-             Depth >= input$depthInput[1],
-             Depth <= input$depthInput[2])
+      filter(Year >= input$yearInput_f[1],
+             Year <= input$yearInput_f[2],
+             Magnitude >= input$magInput_f[1],
+             Magnitude <= input$magInput_f[2],
+             Magnitude_Type %in% input$magtypeInput_f,
+             Depth >= input$depthInput_f[1],
+             Depth <= input$depthInput_f[2])
     
       ggplot(filter_year, aes(Magnitude))+
-        geom_histogram(bins=50, binwidth=0.1,fill="grey50", color="purple", alpha=0.5)+
-        labs(title="Frequency of Earthquakes by Magnitude")+
+        geom_histogram(bins=50, binwidth=0.1,fill="navy", color="yellow3")+
+        labs(title="Frequency of Earthquakes by Magnitude", y="Number of events")+
         theme_classic()
       
   })
@@ -207,14 +273,14 @@ server <- function(input, output) {
  #Fourth tab(Rendered Data)
  output$table <- renderDataTable({
   filter_year <-eq_data %>%
-    filter(Year >= input$yearInput[1],
-           Year <= input$yearInput[2],
-           Magnitude >= input$magInput[1],
-           Magnitude <= input$magInput[2],
-           Magnitude_Type %in% input$magtypeInput,
-           Depth >= input$depthInput[1],
-           Depth <= input$depthInput[2]) %>% 
-    select("Date","Time", "Latitude", "Longitude", "Magnitude", "Magnitude_Type", "Depth","ID")
+    filter(Year >= input$yearInput_d[1],
+           Year <= input$yearInput_d[2],
+           Magnitude >= input$magInput_d[1],
+           Magnitude <= input$magInput_d[2],
+           Magnitude_Type %in% input$magtypeInput_d,
+           Depth >= input$depthInput_d[1],
+           Depth <= input$depthInput_d[2]) %>% 
+    select("Year", "Date","Time", "Latitude", "Longitude", "Magnitude", "Magnitude_Type", "Depth","ID")
   datatable(filter_year, option = list(scrollX = TRUE, pageLength =11))  
  })
  
