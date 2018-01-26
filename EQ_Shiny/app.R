@@ -169,7 +169,7 @@ server <- function(input, output) {
     if (input$colorbyInput=="Depth"){
       ggplot()+
         geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="white", fill="gray50", alpha=0.5)+
-        geom_point(data=filter_year,aes(x = Longitude, y = Latitude, color=Depth),alpha=0.8)+
+        geom_point(data=filter_year,aes(x = Longitude, y = Latitude, color=Depth),alpha=0.7)+
         labs(title="Earthquakes by Depth (km)",x="Latitude (degrees)", y="Longitude (degrees)")+
         scale_colour_gradient(low = "orange1", high = "green4",guide = guide_colorbar(reverse=TRUE))+
         theme_classic()
@@ -178,7 +178,7 @@ server <- function(input, output) {
     else
       ggplot()+
         geom_map(data=world, map=world,aes(x=long, y=lat, map_id=region), colour="white", fill="gray50", alpha=0.5)+
-        geom_point(data=filter_year,aes(x = Longitude, y = Latitude,color=Magnitude),alpha=0.8)+
+        geom_point(data=filter_year,aes(x = Longitude, y = Latitude,color=Magnitude),alpha=0.7)+
         labs(title="Earthquakes by Magnitude",x="Latitude (degrees)", y="Longitude (degrees)")+
         scale_colour_gradient(low = "red", high = "blue", guide = guide_colorbar(reverse=TRUE))+
         theme_classic()
