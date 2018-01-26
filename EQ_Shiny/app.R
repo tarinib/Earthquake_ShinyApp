@@ -214,7 +214,7 @@ server <- function(input, output) {
            Magnitude_Type %in% input$magtypeInput,
            Depth >= input$depthInput[1],
            Depth <= input$depthInput[2]) %>% 
-    select("Date","Time", "Latitude", "Longitude", "Depth", "Magnitude", "Magnitude_Type", "ID")
+    select("Date","Time", "Latitude", "Longitude", "Magnitude", "Magnitude_Type", "Depth","ID")
   datatable(filter_year, option = list(scrollX = TRUE, pageLength =11))  
  })
  
