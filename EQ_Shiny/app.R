@@ -61,9 +61,6 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
    
       
    # Main Panel
-   #conditionalPanel(#condition = tab name',
-     #sudebar
-
    tabsetPanel(type="tab",
                tabPanel("Data Explorer", 
                         br(),
@@ -90,7 +87,10 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
                              radioButtons("colorbyInput", "Color By",
                                           choices=c("Magnitude of earthquake"="Magnitude","Depth of epicenter"="Depth"),
                                           selected="Magnitude"),
-
+                             a(href="https://earthquake.usgs.gov/learn/glossary/?term=magnitude", "What is magnitude?"),
+                             br(),
+                             a(href="https://earthquake.usgs.gov/learn/topics/determining_depth.php", "How do we determine depth?"),
+                             br(),
                              br(),
                              checkboxGroupInput("magtypeInput", "Magnitude Type",
                                                 choices=c('MS: Surface Wave' = 'MS',
