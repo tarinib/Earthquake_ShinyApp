@@ -56,10 +56,12 @@ ui <- fluidPage(theme = shinytheme("sandstone"),
    
    # Application title
    titlePanel("Significant Earthquakes 1965-2016"),
-   
-   # Sidebar with a slider input 
-   
-      
+   h6("Data: "),
+   a(href="https://earthquake.usgs.gov/", "USGS (United States Geological Survey)"),
+   h6("Data provided by: "),
+   a(href="https://www.kaggle.com/usgs/earthquake-database", "Kaggle"),
+   br(),
+
    # Main Panel
    tabsetPanel(type="tab",
                tabPanel("Data Explorer", 
